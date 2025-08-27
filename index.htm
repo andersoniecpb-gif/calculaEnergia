@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Rateio de Energia</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    input { margin: 5px 0; width: 100%; padding: 8px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+    .resultado { margin-top: 20px; background: #f0f0f0; padding: 15px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Calculadora de Rateio de Energia</h1>
+
+  <label>💰 Valor total da fatura (R$):</label>
+  <input type="number" id="valorFatura" step="0.01">
+
+  <label>⚡ Consumo total da fatura (kWh):</label>
+  <input type="number" id="consumoTotal">
+
+  <label>📉 Leitura anterior casa Frente (kWh):</label>
+  <input type="number" id="leituraAnterior">
+
+  <label>📈 Leitura atual casa Frente (kWh):</label>
+  <input type="number" id="leituraAtual">
+
+  <label>🚨 Multa ou despesa extra (R$):</label>
+  <input type="number" id="multa" step="0.01" value="0">
+
+  <button onclick="calcular()">Calcular</button>
+
+  <div class="resultado" id="resultado"></div>
+
+  <script>
+    function calcular() {
+      const valorFatura = parseFloat(document.getElementById('valorFatura').value);
+      const consumoTotal = parseFloat(document.getElementById('consumoTotal').value);
+      const leituraAnterior = parseFloat(document.getElementById('leituraAnterior').value);
+      const leituraAtual = parseFloat(document.getElementById('leituraAtual').value);
+      const multa = parseFloat(document.getElementById('multa').value);
+
+      if (isNaN(valorFatura) || isNaN(consumoTotal) || isNaN(leituraAnterior) || isNaN(leituraAtual)) {
+        document.getElementById('resultado').innerHTML = "⚠️ Preencha todos os campos corretamente.";
+        return;
+      }
+
+      const valorLiquido = valorFatura - multa;
+      const valorPorKwh = valorLiquido / consumoTotal;
+      const consumoFrente = leituraAtual - leituraAnterior;
+      const valorFrente = consumoFrente * valorPorKwh;
+      const valorFundos = valorLiquido - valorFrente;
+
+      document.getElementById('resultado').innerHTML = `
+        <strong>🔍 Resultado:</strong><br>
+        Valor por kWh: R$ ${valorPorKwh.toFixed(4)}<br>
+        Consumo casa Frente: ${consumoFrente.toFixed(2)} kWh<br>
+        Valor casa Frente: R$ ${valorFrente.toFixed(2)}<br>
+        Valor casa Fundos: R$ ${valorFundos.toFixed(2)}<br>
+        ${multa > 0 ? `Multa descontada: R$ ${multa.toFixed(2)}` : ''}
+      `;
+    }
+  </script>
+</body>
+</html>
