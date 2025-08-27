@@ -1,83 +1,65 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Histórico de Leituras</title>
+  <title>Calculadora de Rateio de Energia</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    input { margin: 5px 0; width: 100%; padding: 8px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+    .resultado { margin-top: 20px; background: #f0f0f0; padding: 15px; border-radius: 5px; }
+  </style>
 </head>
 <body>
-  <h2>Registro de Leitura de Energia</h2>
+  <h1>Calculadora de Rateio de Energia</h1>
 
-  <label>Data da leitura:</label>
-  <input type="date" id="dataLeitura"><br><br>
+  <label>💰 Valor total da fatura (R$):</label>
+  <input type="number" id="valorFatura" step="0.01">
 
-  <label>Leitura anterior:</label>
-  <input type="number" id="leituraAnterior"><br><br>
+  <label>⚡ Consumo total da fatura (kWh):</label>
+  <input type="number" id="consumoTotal">
 
-  <label>Leitura atual:</label>
-  <input type="number" id="leituraAtual"><br><br>
+  <label>📉 Leitura anterior casa Frente (kWh):</label>
+  <input type="number" id="leituraAnterior">
 
-  <button onclick="salvarLeitura()">Salvar leitura</button>
+  <label>📈 Leitura atual casa Frente (kWh):</label>
+  <input type="number" id="leituraAtual">
 
-  <h3>Histórico de Leituras</h3>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Leitura anterior</th>
-        <th>Leitura atual</th>
-        <th>Consumo</th>
-      </tr>
-    </thead>
-    <tbody id="tabelaHistorico"></tbody>
-  </table>
+  <label>🚨 Multa ou despesa extra (R$):</label>
+  <input type="number" id="multa" step="0.01" value="0">
+
+  <button onclick="calcular()">Calcular</button>
+
+  <div class="resultado" id="resultado"></div>
 
   <script>
-    function salvarLeitura() {
-      const data = document.getElementById("dataLeitura").value;
-      const anterior = document.getElementById("leituraAnterior").value;
-      const atual = document.getElementById("leituraAtual").value;
+    function calcular() {
+      const valorFatura = parseFloat(document.getElementById('valorFatura').value);
+      const consumoTotal = parseFloat(document.getElementById('consumoTotal').value);
+      const leituraAnterior = parseFloat(document.getElementById('leituraAnterior').value);
+      const leituraAtual = parseFloat(document.getElementById('leituraAtual').value);
+      const multa = parseFloat(document.getElementById('multa').value);
 
-      if (!data || !anterior || !atual) {
-        alert("Preencha todos os campos!");
+      if (isNaN(valorFatura) || isNaN(consumoTotal) || isNaN(leituraAnterior) || isNaN(leituraAtual)) {
+        document.getElementById('resultado').innerHTML = "⚠️ Preencha todos os campos corretamente.";
         return;
       }
 
-      const historico = JSON.parse(localStorage.getItem("leituras")) || [];
+      const valorLiquido = valorFatura - multa;
+      const valorPorKwh = valorLiquido / consumoTotal;
+      const consumoFrente = leituraAtual - leituraAnterior;
+      const valorFrente = consumoFrente * valorPorKwh;
+      const valorFundos = valorLiquido - valorFrente;
 
-      historico.push({
-        data: data,
-        leituraAnterior: Number(anterior),
-        leituraAtual: Number(atual)
-      });
-
-      localStorage.setItem("leituras", JSON.stringify(historico));
-      atualizarTabela();
+      document.getElementById('resultado').innerHTML = `
+        <strong>🔍 Resultado:</strong><br>
+        Valor por kWh: R$ ${valorPorKwh.toFixed(4)}<br>
+        Consumo casa Frente: ${consumoFrente.toFixed(2)} kWh<br>
+        Valor casa Frente: R$ ${valorFrente.toFixed(2)}<br>
+        Valor casa Fundos: R$ ${valorFundos.toFixed(2)}<br>
+        ${multa > 0 ? `Multa descontada: R$ ${multa.toFixed(2)}` : ''}
+      `;
     }
-
-    function atualizarTabela() {
-      const historico = JSON.parse(localStorage.getItem("leituras")) || [];
-      const tabela = document.getElementById("tabelaHistorico");
-      tabela.innerHTML = "";
-
-      historico.forEach(item => {
-        const linha = document.createElement("tr");
-        linha.innerHTML = `
-          <td>${formatarData(item.data)}</td>
-          <td>${item.leituraAnterior}</td>
-          <td>${item.leituraAtual}</td>
-          <td>${item.leituraAtual - item.leituraAnterior}</td>
-        `;
-        tabela.appendChild(linha);
-      });
-    }
-
-    function formatarData(dataISO) {
-      const [ano, mes, dia] = dataISO.split("-");
-      return `${dia}/${mes}/${ano}`;
-    }
-
-    // Atualiza a tabela ao abrir o site
-    window.onload = atualizarTabela;
   </script>
 </body>
 </html>
